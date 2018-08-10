@@ -3,9 +3,9 @@
  * http://github.com/djreimer/tidy-date-range
  * =====================================================================
  * Copyright (c) 2014 Derrick Reimer
- * 
+ *
  * MIT License
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -13,10 +13,10 @@
  * distribute, sublicense, and/or sell copies of the Software, and to
  * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -80,8 +80,12 @@
       return [year, month, day].join("-");
     }
 
-  , toHuman: function() {
-      return Month.shortNames[this.month.number - 1] + " " + this.number + ", " + this.month.year;
+  , toHuman: function(locale) {
+      if (locale == "en_us") {
+        return Month.shortNames[this.month.number - 1] + " " + this.number + ", " + this.month.year;
+      } else {
+        return this.number + " " + Month.shortNames[this.month.number - 1] + " " + this.month.year;
+      }
     }
 
   , toSlashed: function() {
@@ -96,12 +100,12 @@
   }
 
   Month.names = [
-    'January', 'February', 'March', 'April', 'May', 'June', 
+    'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
   Month.shortNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'
   ];
 
@@ -163,11 +167,12 @@
     constructor: Calendar
 
   , applyRange: function(range, isSelecting) {
-      var now = Day.now().toDate();
+      var now = Day.now().toDate(),
+          maxTo = range.from.daysFromNow(range.maxDays - 1).toDate();
 
       this.$el.find("[data-date]").each(function(index) {
         var $this = $(this);
-        var day = Day.fromString($this.data("date"))
+        var day = Day.fromString($this.data("date"));
 
         if (range.includes(day)) {
           $this.addClass("selected");
@@ -175,9 +180,9 @@
           $this.removeClass("selected");
         }
 
-        var date = day.toDate()
+        var date = day.toDate();
 
-        if (date > now || (isSelecting && date < range.from.toDate())) {
+        if (date > now || (isSelecting && (date < range.from.toDate() || date > maxTo))) {
           $this.addClass("disabled");
         } else {
           $this.removeClass("disabled");
@@ -186,9 +191,9 @@
     }
 
   , render: function() {
-      var day = 1, 
-          weeks = "<tr>", 
-          chrome = "", 
+      var day = 1,
+          weeks = "<tr>",
+          chrome = "",
           date = "";
 
       // Loop over weeks
@@ -202,7 +207,7 @@
             weeks += "<a href='#' data-date='"+ date + "'>" + day + "</a>";
             day++;
           }
-          
+
           weeks += "</td>";
         }
 
@@ -234,14 +239,15 @@
     }
   }
 
-  var DateRange = function(from, to) {
+  var DateRange = function(from, to, maxDays) {
     this.from = from;
     this.to = to;
+    this.maxDays = maxDays;
   }
 
   DateRange.default = function() {
     var now = Day.now();
-    return new DateRange(now.daysFromNow(-30), now);
+    return new DateRange(now.daysFromNow(-30), now, 366);
   }
 
   DateRange.prototype = {
@@ -250,6 +256,7 @@
   , isValid: function() {
       if (this.from == undefined || this.to == undefined) return false;
       if (this.from.toDate() > this.to.toDate()) return false;
+      if (this.maxDays && this.to.toDate() > this.from.daysFromNow(this.maxDays).toDate()) return false;
       return true;
     }
 
@@ -266,9 +273,12 @@
 
     this.options = options || {};
 
+    this.locale = options.locale || "en_us"
+
     range = new DateRange(
       Day.fromString(this.options.from),
-      Day.fromString(this.options.to)
+      Day.fromString(this.options.to),
+      this.options.maxDays
     )
 
     this.range = range.isValid() ? range : DateRange.default();
@@ -287,6 +297,7 @@
       "<div class='tdr-controls'>" +
         "<div class='tdr-range-inputs'>" +
           "<label>Date Range</label>" +
+          (this.options && (typeof this.options.presetsHTML === 'string') && this.options.presetsHTML) +
           "<input type='text' name='from' value='' class='tdr-date' />" +
           "<span class='tdr-dash'>&mdash;</span>" +
           "<input type='text' name='to' value='' class='tdr-date' />" +
@@ -304,16 +315,20 @@
     this.$popover.append(this.$calendars);
     this.$popover.append(this.$controls);
 
+    this.close = function () {
+      this.$el.removeClass("open");
+    }
+
     this.$dropdown.on("click", function() {
       that.$el.toggleClass("open");
       return false;
     });
 
     $("html").on("click.tidydaterange", function() {
-      that.$el.removeClass("open");
+      that.close();
     });
 
-    $("body").on("click.tidydaterange", ".tdr-popover", function(e) { 
+    $("body").on("click.tidydaterange", ".tdr-popover", function(e) {
       e.stopPropagation();
     });
 
@@ -329,10 +344,20 @@
       return false;
     });
 
+    this.$el.on("change", "input[name='from']", function(e) {
+      that.updateFrom(e.currentTarget.value);
+    });
+
+    this.$el.on("change", "input[name='to']", function(e) {
+      that.updateTo(e.currentTarget.value);
+    });
+
     this.$el.on("click", "[data-tidydaterange='apply']", function() {
       that.$parent.trigger("apply");
       return false;
     });
+
+    this.options && (typeof this.options.presetsCode === 'function') && this.options.presetsCode.apply(this);
 
     this.render();
   }
@@ -368,6 +393,8 @@
             that.isSelecting = true;
           }
 
+          that.$calendars.trigger("daySelected", day)
+
           that.render();
         })
       });
@@ -379,6 +406,22 @@
       }
     }
 
+  , updateFrom: function(from) {
+      this.range.from = Day.fromDate(new Date(from));
+      if (this.range.isValid()) {
+        this.applyRange(this.range);
+        this.$parent.data("from", this.range.from.toString());
+      }
+    }
+
+  , updateTo: function(to) {
+      this.range.to = Day.fromDate(new Date(to));
+      if (this.range.isValid()) {
+        this.applyRange(this.range);
+        this.$parent.data("to", this.range.to.toString());
+      }
+    }
+
   , applyRange: function(range) {
       // Update calendars
       for (var i = 0; i < this.calendars.length; i++) {
@@ -387,8 +430,8 @@
 
       // Update dropdown label
       this.$dropdown.html(
-        "<span class='label'>" + 
-          this.range.from.toHuman() + " &mdash; " + this.range.to.toHuman() +
+        "<span class='label'>" +
+          this.range.from.toHuman(this.locale) + " &mdash; " + this.range.to.toHuman(this.locale) +
         "</span><span class='arrow'></span>"
       );
     }
@@ -398,6 +441,7 @@
       this.applyRange();
       this.$parent.data("from", this.range.from.toString());
       this.$parent.data("to", this.range.to.toString());
+
       this.$controls.find("input[name='from']").val(this.range.from.toSlashed());
       this.$controls.find("input[name='to']").val(this.range.to.toSlashed());
       return this;
