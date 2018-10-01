@@ -4,7 +4,24 @@ A simple jQuery date range plugin.
 
 ## Usage
 
-TODO.
+```
+    var $myDatePicker = $('#date-picker').tidydaterange({
+        from: '8/8/2018, 
+        to: '10/10/2018', 
+        presetsHTML: "<div class='tdr-range-presets'/>",
+        presetsCode: function () {
+            console.log('In PresetsCode');
+        }
+    })
+```
+
+## Options
+
+* `from`: String Initial from date in a form that can be converted to a Date
+* `to`: String Initial to date in a form that can be converted to a Date
+* `maxDays`: Int Maximum number of days for a selection
+* `presetsHTML`: String HTML code to be inserted before input boxes
+* `presetsCode`: Function Code to be run on Control setup
 
 ## Contributing
 

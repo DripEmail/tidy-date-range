@@ -5,16 +5,16 @@
   "author": {
     "name": "Derrick Reimer"
   },
-  "version": "0.0.1",
+  "version": "0.1.0",
   "licenses": [
     {
       "type": "MIT",
-      "url": "https://github.com/djreimer/tidy-date-range/blob/master/LICENSE.txt"
+      "url": "https://github.com/DripEmail/tidy-date-range/blob/master/LICENSE.txt"
     }
   ],
-  "bugs": "https://github.com/djreimer/tidy-date-range/issues",
-  "homepage": "https://github.com/djreimer/tidy-date-range",
-  "docs": "https://github.com/djreimer/tidy-date-range",
+  "bugs": "https://github.com/DripEmail/tidy-date-range/issues",
+  "homepage": "https://github.com/DripEmail/tidy-date-range",
+  "docs": "https://github.com/DripEmail/tidy-date-range",
   "dependencies": {
     "jquery": ">=1.5"
   }
