@@ -1,6 +1,6 @@
 /* =====================================================================
- * tidy-date-range.js v0.0.1
- * http://github.com/djreimer/tidy-date-range
+ * tidy-date-range.js v0.1.0
+ * https://github.com/DripEmail/tidy-date-range
  * =====================================================================
  * Copyright (c) 2014 Derrick Reimer
  *
@@ -297,7 +297,7 @@
       "<div class='tdr-controls'>" +
         "<div class='tdr-range-inputs'>" +
           "<label>Date Range</label>" +
-          (this.options && (typeof this.options.presetsHTML === 'string') && this.options.presetsHTML) +
+          ((this.options && (typeof this.options.presetsHTML === 'string') && this.options.presetsHTML) || '') +
           "<input type='text' name='from' value='' class='tdr-date' />" +
           "<span class='tdr-dash'>&mdash;</span>" +
           "<input type='text' name='to' value='' class='tdr-date' />" +
