@@ -26,17 +26,17 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * ===================================================================== */
 
-;(function($, window, document, undefined) {
-  var Day = function(month, number) {
+; (function ($, window, document, undefined) {
+  var Day = function (month, number) {
     this.month = month;
     this.number = number;
   }
 
-  Day.pad = function(s) {
+  Day.pad = function (s) {
     return ("0" + s).slice(-2);
   }
 
-  Day.fromString = function(str) {
+  Day.fromString = function (str) {
     if (str == "" || str == undefined) return undefined;
 
     var parts = str.split("-");
@@ -48,39 +48,39 @@
     return new Day(new Month(year, month), day);
   }
 
-  Day.fromDate = function(date) {
+  Day.fromDate = function (date) {
     var year = date.getFullYear();
     var month = date.getMonth() + 1;
     var day = date.getDate();
     return new Day(new Month(year, month), day);
   }
 
-  Day.now = function() {
+  Day.now = function () {
     return Day.fromDate(new Date());
   }
 
   Day.prototype = {
     constructor: Day
 
-  , daysFromNow: function(days) {
+    , daysFromNow: function (days) {
       var date = this.toDate();
       var time = date.getTime();
       newTime = time + (days * 86400000);
       return Day.fromDate(new Date(newTime));
     }
 
-  , toDate: function() {
+    , toDate: function () {
       return new Date(this.month.year, this.month.number - 1, this.number);
     }
 
-  , toString: function() {
+    , toString: function () {
       var year = this.month.year;
       var month = Day.pad(this.month.number);
       var day = Day.pad(this.number);
       return [year, month, day].join("-");
     }
 
-  , toHuman: function(locale) {
+    , toHuman: function (locale) {
       if (locale == "en_us") {
         return Month.shortNames[this.month.number - 1] + " " + this.number + ", " + this.month.year;
       } else {
@@ -88,12 +88,12 @@
       }
     }
 
-  , toSlashed: function() {
+    , toSlashed: function () {
       return [this.month.number, this.number, this.month.year].join("/");
     }
   }
 
-  var Month = function(year, number) {
+  var Month = function (year, number) {
     this.year = year;
     this.number = number;
     this.dayCounts = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -112,36 +112,36 @@
   Month.prototype = {
     constructor: Month
 
-  , name: function() {
+    , name: function () {
       return Month.names[this.number - 1] + " " + this.year;
     }
 
-  , shortName: function() {
+    , shortName: function () {
       return Month.shortNames[this.number - 1] + " " + this.year;
     }
 
-  , dayCount: function() {
+    , dayCount: function () {
       if (this.number == 2 && this.isLeapYear()) return 29;
       return this.dayCounts[this.number - 1];
     }
 
-  , isLeapYear: function() {
+    , isLeapYear: function () {
       return (
         this.year % 4 == 0 && this.year % 100 != 0
       ) || (
-        this.year % 400 == 0
-      );
+          this.year % 400 == 0
+        );
     }
 
-  , firstDay: function() {
+    , firstDay: function () {
       return new Date(this.year, this.number - 1, 1);
     }
 
-  , firstDayOfTheWeek: function() {
+    , firstDayOfTheWeek: function () {
       return this.firstDay().getDay();
     }
 
-  , previous: function() {
+    , previous: function () {
       if (this.number == 1) {
         return new Month(this.year - 1, 12);
       } else {
@@ -149,7 +149,7 @@
       }
     }
 
-  , next: function() {
+    , next: function () {
       if (this.number == 12) {
         return new Month(this.year + 1, 1);
       } else {
@@ -158,7 +158,7 @@
     }
   }
 
-  var Calendar = function(month) {
+  var Calendar = function (month) {
     this.month = month;
     this.$el = $("<table class='tdr-calendar'></table>");
   }
@@ -166,11 +166,11 @@
   Calendar.prototype = {
     constructor: Calendar
 
-  , applyRange: function(range, isSelecting) {
+    , applyRange: function (range, isSelecting) {
       var now = Day.now().toDate(),
-          maxTo = range.from.daysFromNow(range.maxDays - 1).toDate();
+        maxTo = range.from.daysFromNow(range.maxDays - 1).toDate();
 
-      this.$el.find("[data-date]").each(function(index) {
+      this.$el.find("[data-date]").each(function (index) {
         var $this = $(this);
         var day = Day.fromString($this.data("date"));
 
@@ -182,7 +182,7 @@
 
         var date = day.toDate();
 
-        if (date > now || (isSelecting && (date < range.from.toDate() || date > maxTo))) {
+        if (date > now || (isSelecting && (date < range.from.toDate() || date > maxTo)) || (range.minDate && date < range.minDate.toDate())) {
           $this.addClass("disabled");
         } else {
           $this.removeClass("disabled");
@@ -190,11 +190,11 @@
       })
     }
 
-  , render: function() {
+    , render: function () {
       var day = 1,
-          weeks = "<tr>",
-          chrome = "",
-          date = "";
+        weeks = "<tr>",
+        chrome = "",
+        date = "";
 
       // Loop over weeks
       for (var i = 0; i <= 6; i++) {
@@ -204,7 +204,7 @@
           date = this.month.year + "-" + Day.pad(this.month.number) + "-" + Day.pad(day);
 
           if (day <= this.month.dayCount() && (i > 0 || j >= this.month.firstDayOfTheWeek())) {
-            weeks += "<a href='#' data-date='"+ date + "'>" + day + "</a>";
+            weeks += "<a href='#' data-date='" + date + "'>" + day + "</a>";
             day++;
           }
 
@@ -230,8 +230,8 @@
       this.$el.html(chrome);
     }
 
-  , onSelect: function(handler) {
-      this.$el.on("click", "a[data-date]:not(.disabled)", function() {
+    , onSelect: function (handler) {
+      this.$el.on("click", "a[data-date]:not(.disabled)", function () {
         var day = Day.fromString($(this).data("date"));
         handler(day);
         return false;
@@ -239,13 +239,14 @@
     }
   }
 
-  var DateRange = function(from, to, maxDays) {
+  var DateRange = function (from, to, maxDays, minDate) {
     this.from = from;
     this.to = to;
     this.maxDays = maxDays;
+    this.minDate - minDate
   }
 
-  DateRange.default = function() {
+  DateRange.default = function () {
     var now = Day.now();
     return new DateRange(now.daysFromNow(-30), now, 366);
   }
@@ -253,21 +254,22 @@
   DateRange.prototype = {
     constructor: DateRange
 
-  , isValid: function() {
+    , isValid: function () {
       if (this.from == undefined || this.to == undefined) return false;
       if (this.from.toDate() > this.to.toDate()) return false;
       if (this.maxDays && this.to.toDate() > this.from.daysFromNow(this.maxDays).toDate()) return false;
+      if (this.minDate && this.from.toDate() < this.minDate) return false;
       return true;
     }
 
-  , includes: function(day) {
+    , includes: function (day) {
       if (!this.isValid()) return false;
       var date = day.toDate();
       return (this.from.toDate() <= date && this.to.toDate() >= date);
     }
   }
 
-  var Control = function(parent, options) {
+  var Control = function (parent, options) {
     var that = this
       , range;
 
@@ -278,7 +280,8 @@
     range = new DateRange(
       Day.fromString(this.options.from),
       Day.fromString(this.options.to),
-      this.options.maxDays
+      this.options.maxDays,
+      this.options.minDate
     )
 
     this.range = range.isValid() ? range : DateRange.default();
@@ -295,16 +298,16 @@
     this.$calendars = $("<div class='tdr-calendars'></div>");
     this.$controls = $(
       "<div class='tdr-controls'>" +
-        "<div class='tdr-range-inputs'>" +
-          "<label>Date Range</label>" +
-          ((this.options && (typeof this.options.presetsHTML === 'string') && this.options.presetsHTML) || '') +
-          "<input type='text' name='from' value='' class='tdr-date' />" +
-          "<span class='tdr-dash'>&mdash;</span>" +
-          "<input type='text' name='to' value='' class='tdr-date' />" +
-        "</div>" +
-        "<div class='tdr-buttons'>" +
-          "<a href='#' data-tidydaterange='apply' class='tdr-button'>Apply</a>" +
-        "</div>" +
+      "<div class='tdr-range-inputs'>" +
+      "<label>Date Range</label>" +
+      ((this.options && (typeof this.options.presetsHTML === 'string') && this.options.presetsHTML) || '') +
+      "<input type='text' name='from' value='' class='tdr-date' />" +
+      "<span class='tdr-dash'>&mdash;</span>" +
+      "<input type='text' name='to' value='' class='tdr-date' />" +
+      "</div>" +
+      "<div class='tdr-buttons'>" +
+      "<a href='#' data-tidydaterange='apply' class='tdr-button'>Apply</a>" +
+      "</div>" +
       "</div>"
     );
 
@@ -319,40 +322,40 @@
       this.$el.removeClass("open");
     }
 
-    this.$dropdown.on("click", function() {
+    this.$dropdown.on("click", function () {
       that.$el.toggleClass("open");
       return false;
     });
 
-    $("html").on("click.tidydaterange", function() {
+    $("html").on("click.tidydaterange", function () {
       that.close();
     });
 
-    $("body").on("click.tidydaterange", ".tdr-popover", function(e) {
+    $("body").on("click.tidydaterange", ".tdr-popover", function (e) {
       e.stopPropagation();
     });
 
     this.$parent.html(this.$el);
 
-    this.$previous.on("click", function() {
+    this.$previous.on("click", function () {
       that.shiftPrevious();
       return false;
     });
 
-    this.$next.on("click", function() {
+    this.$next.on("click", function () {
       that.shiftNext();
       return false;
     });
 
-    this.$el.on("change", "input[name='from']", function(e) {
+    this.$el.on("change", "input[name='from']", function (e) {
       that.updateFrom(e.currentTarget.value);
     });
 
-    this.$el.on("change", "input[name='to']", function(e) {
+    this.$el.on("change", "input[name='to']", function (e) {
       that.updateTo(e.currentTarget.value);
     });
 
-    this.$el.on("click", "[data-tidydaterange='apply']", function() {
+    this.$el.on("click", "[data-tidydaterange='apply']", function () {
       that.$parent.trigger("apply");
       return false;
     });
@@ -365,7 +368,7 @@
   Control.prototype = {
     constructor: Control
 
-  , renderCalendars: function() {
+    , renderCalendars: function () {
       var that = this
         , c3 = new Calendar(this.visibleMonth)
         , c2 = new Calendar(c3.month.previous())
@@ -382,8 +385,8 @@
       var that = this;
 
       // Bind events
-      $.each(this.calendars, function(index) {
-        this.onSelect(function(day) {
+      $.each(this.calendars, function (index) {
+        this.onSelect(function (day) {
           that.range.to = day;
 
           if (that.isSelecting) {
@@ -406,7 +409,7 @@
       }
     }
 
-  , updateFrom: function(from) {
+    , updateFrom: function (from) {
       this.range.from = Day.fromDate(new Date(from));
       if (this.range.isValid()) {
         this.applyRange(this.range);
@@ -414,7 +417,7 @@
       }
     }
 
-  , updateTo: function(to) {
+    , updateTo: function (to) {
       this.range.to = Day.fromDate(new Date(to));
       if (this.range.isValid()) {
         this.applyRange(this.range);
@@ -422,7 +425,7 @@
       }
     }
 
-  , applyRange: function(range) {
+    , applyRange: function (range) {
       // Update calendars
       for (var i = 0; i < this.calendars.length; i++) {
         this.calendars[i].applyRange(this.range, this.isSelecting);
@@ -431,12 +434,12 @@
       // Update dropdown label
       this.$dropdown.html(
         "<span class='label'>" +
-          this.range.from.toHuman(this.locale) + " &mdash; " + this.range.to.toHuman(this.locale) +
+        this.range.from.toHuman(this.locale) + " &mdash; " + this.range.to.toHuman(this.locale) +
         "</span><span class='arrow'></span>"
       );
     }
 
-  , render: function() {
+    , render: function () {
       this.renderCalendars();
       this.applyRange();
       this.$parent.data("from", this.range.from.toString());
@@ -447,30 +450,31 @@
       return this;
     }
 
-  , setVisibleMonth: function(month) {
+    , setVisibleMonth: function (month) {
       this.visibleMonth = month;
       this.render();
     }
 
-  , shiftNext: function() {
+    , shiftNext: function () {
       this.setVisibleMonth(this.visibleMonth.next());
       return this;
     }
 
-  , shiftPrevious: function() {
+    , shiftPrevious: function () {
       this.setVisibleMonth(this.visibleMonth.previous());
       return this;
     }
 
-  , getRange: function() {
+    , getRange: function () {
       return this.range;
     }
   }
 
-  $.fn.tidydaterange = function(options) {
-    return this.each(function() {
+  $.fn.tidydaterange = function (options) {
+    return this.each(function () {
       var $this = $(this)
         , data = $this.data('tidydaterange');
+
       if (!data) $this.data('tidydaterange', (data = new Control(this, options)));
       if (typeof options == 'string') return data[options].call(data);
     });
