@@ -243,7 +243,7 @@
     this.from = from;
     this.to = to;
     this.maxDays = maxDays;
-    this.minDate - minDate
+    this.minDate = minDate
   }
 
   DateRange.default = function () {
